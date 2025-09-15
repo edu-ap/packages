@@ -34,8 +34,13 @@
       "package": "io.elevenlabs.convaiexample"
     },
     "plugins": [
-      "@livekit/react-native-expo-plugin", "@config-plugins/react-native-webrtc"
-    ]
-
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "f4d41b56-3a27-41ec-a873-59ef18c8fe25"
+      }
+    }
   }
 }

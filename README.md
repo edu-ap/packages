@@ -12,21 +12,22 @@ Build powerful conversational applications with [ElevenLabs Conversational AI pl
 
 ## Overview
 
-The ElevenLabs Conversational AI SDKs provide a unified interface for integrating conversational AI capabilities into your applications. Built on WebRTC technology for real-time audio streaming, our SDKs support multiple platforms and frameworks.
+The ElevenLabs Agents SDKs provide a unified interface for integrating multimodal agentic capabilities into your applications.
 
 ### Available Packages
 
-| Package                                               | Description                                               | Version                                                                                                                 |
-| ----------------------------------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [`@elevenlabs/client`](#elevenlabsclient)             | Core TypeScript/JavaScript client for browser and Node.js | [![npm](https://img.shields.io/npm/v/@elevenlabs/client)](https://www.npmjs.com/package/@elevenlabs/client)             |
-| [`@elevenlabs/react`](#elevenlabsreact)               | React hooks and components for web applications           | [![npm](https://img.shields.io/npm/v/@elevenlabs/react)](https://www.npmjs.com/package/@elevenlabs/react)               |
-| [`@elevenlabs/react-native`](#elevenlabsreact-native) | React Native SDK for iOS and Android applications         | [![npm](https://img.shields.io/npm/v/@elevenlabs/react-native)](https://www.npmjs.com/package/@elevenlabs/react-native) |
+| Package                                               | Description                                               | Version                                                                                                                               |
+| ----------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@elevenlabs/client`](#elevenlabsclient)             | Core TypeScript/JavaScript client for browser and Node.js | [![npm](https://img.shields.io/npm/v/@elevenlabs/client)](https://www.npmjs.com/package/@elevenlabs/client)                           |
+| [`@elevenlabs/react`](#elevenlabsreact)               | React hooks and components for web applications           | [![npm](https://img.shields.io/npm/v/@elevenlabs/react)](https://www.npmjs.com/package/@elevenlabs/react)                             |
+| [`@elevenlabs/react-native`](#elevenlabsreact-native) | React Native SDK for iOS and Android applications         | [![npm](https://img.shields.io/npm/v/@elevenlabs/react-native)](https://www.npmjs.com/package/@elevenlabs/react-native)               |
+| [`@elevenlabs/convai-widget-core`](#widgets)          | Core widget library for embedding Agents                  | [![npm](https://img.shields.io/npm/v/@elevenlabs/convai-widget-core)](https://www.npmjs.com/package/@elevenlabs/convai-widget-core)   |
+| [`@elevenlabs/convai-widget-embed`](#widgets)         | Pre-bundled widget for easy embedding                     | [![npm](https://img.shields.io/npm/v/@elevenlabs/convai-widget-embed)](https://www.npmjs.com/package/@elevenlabs/convai-widget-embed) |
+| [`@elevenlabs/convai-cli`](#agents-cli)               | CLI tool for managing agents as code                      | [![npm](https://img.shields.io/npm/v/@elevenlabs/convai-cli)](https://www.npmjs.com/package/@elevenlabs/convai-cli)                   |
 
 ## Quick Start
 
 ### Installation
-
-Choose the package that best fits your project:
 
 ```bash
 # For React applications
@@ -59,17 +60,18 @@ pnpm add @elevenlabs/react-native
 import { useConversation } from "@elevenlabs/react";
 
 function ConversationalComponent() {
-  const { startConversation, endConversation, status } = useConversation({
+  const { startSession, endSession, status } = useConversation({
     agentId: "your-agent-id",
-    onConnect: () => console.log("Connected"),
-    onMessage: message => console.log("Message:", message),
-    onError: error => console.error("Error:", error),
+    onConnect: ({ conversationId }) =>
+      console.log("Connected:", conversationId),
+    onMessage: ({ message, source }) => console.log(`${source}: ${message}`),
+    onError: (message: string) => console.error("Error:", message),
   });
 
   return (
     <div>
-      <button onClick={startConversation}>Start Conversation</button>
-      <button onClick={endConversation}>End Conversation</button>
+      <button onClick={startSession}>Start Conversation</button>
+      <button onClick={endSession}>End Conversation</button>
       <p>Status: {status}</p>
     </div>
   );
@@ -88,26 +90,26 @@ const config: ConversationConfig = {
 const conversation = new Conversation(config);
 
 // Set up event handlers
-conversation.on("connect", () => {
-  console.log("Connected to agent");
+conversation.on("connect", ({ conversationId }) => {
+  console.log("Connected to agent:", conversationId);
 });
 
-conversation.on("message", message => {
-  console.log("Received message:", message);
+conversation.on("message", ({ message, source }) => {
+  console.log(`${source}: ${message}`);
 });
 
-conversation.on("error", error => {
-  console.error("Error:", error);
+conversation.on("error", (message: string) => {
+  console.error("Error:", message);
 });
 
 // Start the conversation
-await conversation.connect();
+const conversationId = await conversation.startSession();
 
-// Send a message
-await conversation.sendMessage("Hello, how can you help me?");
+// Send a text message (for text conversations)
+await conversation.sendUserMessage("Hello, how can you help me?");
 
 // End the conversation
-await conversation.disconnect();
+await conversation.endSession();
 ```
 
 #### React Native Example
@@ -117,18 +119,22 @@ import { useConversation } from "@elevenlabs/react-native";
 import { View, Button, Text } from "react-native";
 
 function ConversationScreen() {
-  const { startConversation, endConversation, status } = useConversation({
-    agentId: "your-agent-id",
-    onConnect: () => console.log("Connected"),
-    onMessage: message => console.log("Message:", message),
-    onError: error => console.error("Error:", error),
+  const conversation = useConversation({
+    onConnect: ({ conversationId }) =>
+      console.log("Connected:", conversationId),
+    onMessage: ({ message, source }) => console.log(`${source}: ${message}`),
+    onError: (message: string) => console.error("Error:", message),
   });
+
+  const handleStart = () => {
+    conversation.startSession({ agentId: "your-agent-id" });
+  };
 
   return (
     <View>
-      <Button title="Start Conversation" onPress={startConversation} />
-      <Button title="End Conversation" onPress={endConversation} />
-      <Text>Status: {status}</Text>
+      <Button title="Start Conversation" onPress={handleStart} />
+      <Button title="End Conversation" onPress={conversation.endSession} />
+      <Text>Status: {conversation.status}</Text>
     </View>
   );
 }
@@ -156,7 +162,7 @@ npm install @elevenlabs/client
 
 ### @elevenlabs/react
 
-React hooks and components for building conversational AI interfaces with React/Next.JS
+React hooks and components for building multimodal agents with React/Next.JS
 
 #### Installation
 
@@ -174,26 +180,26 @@ function VoiceAssistant() {
   const [transcript, setTranscript] = useState<string[]>([]);
 
   const {
-    startConversation,
-    endConversation,
+    startSession,
+    endSession,
     status,
     isSpeaking,
-    isListening,
-    volume,
+    mode,
+    getOutputVolume,
     setVolume,
   } = useConversation({
     agentId: process.env.REACT_APP_AGENT_ID!,
-    onConnect: () => {
-      console.log("Connected to AI assistant");
+    onConnect: ({ conversationId }) => {
+      console.log("Connected to AI assistant:", conversationId);
     },
-    onMessage: message => {
-      setTranscript(prev => [...prev, `Agent: ${message.text}`]);
+    onMessage: ({ message, source }) => {
+      setTranscript(prev => [
+        ...prev,
+        `${source === "ai" ? "Agent" : "You"}: ${message}`,
+      ]);
     },
-    onUserTranscript: text => {
-      setTranscript(prev => [...prev, `You: ${text}`]);
-    },
-    onError: error => {
-      console.error("Conversation error:", error);
+    onError: (message: string) => {
+      console.error("Conversation error:", message);
     },
     clientTools: {
       updateUI: (data: any) => {
@@ -208,13 +214,13 @@ function VoiceAssistant() {
     <div className="voice-assistant">
       <div className="status">
         <span>Status: {status}</span>
-        {isListening && <span>🎤 Listening...</span>}
+        {mode === "listening" && <span>🎤 Listening...</span>}
         {isSpeaking && <span>🔊 Speaking...</span>}
       </div>
 
       <div className="controls">
         <button
-          onClick={status === "connected" ? endConversation : startConversation}
+          onClick={status === "connected" ? endSession : startSession}
           disabled={status === "connecting"}
         >
           {status === "connected" ? "End" : "Start"} Conversation
@@ -225,8 +231,8 @@ function VoiceAssistant() {
           min="0"
           max="1"
           step="0.1"
-          value={volume}
-          onChange={e => setVolume(parseFloat(e.target.value))}
+          defaultValue="0.8"
+          onChange={e => setVolume({ volume: parseFloat(e.target.value) })}
         />
       </div>
 
@@ -283,6 +289,7 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { useEffect, useState } from "react";
 
@@ -291,45 +298,27 @@ function ConversationScreen() {
     Array<{ role: string; text: string }>
   >([]);
 
-  const {
-    startConversation,
-    endConversation,
-    status,
-    error,
-    isSpeaking,
-    isListening,
-    sendTextMessage,
-  } = useConversation({
-    agentId: "your-agent-id",
-    onConnect: () => {
+  const conversation = useConversation({
+    onConnect: ({ conversationId }) => {
       setMessages(prev => [
         ...prev,
         {
           role: "system",
-          text: "Connected to assistant",
+          text: "Connected to assistant: " + conversationId,
         },
       ]);
     },
-    onMessage: message => {
+    onMessage: ({ message, source }) => {
       setMessages(prev => [
         ...prev,
         {
-          role: "agent",
-          text: message.text,
+          role: source === "ai" ? "agent" : "user",
+          text: message,
         },
       ]);
     },
-    onUserTranscript: text => {
-      setMessages(prev => [
-        ...prev,
-        {
-          role: "user",
-          text: text,
-        },
-      ]);
-    },
-    onError: error => {
-      console.error("Conversation error:", error);
+    onError: (message: string) => {
+      console.error("Conversation error:", message);
     },
     // Optional: Handle client tools
     clientTools: {
@@ -344,16 +333,15 @@ function ConversationScreen() {
   });
 
   const handleSendText = async (text: string) => {
-    if (status === "connected") {
-      await sendTextMessage(text);
+    if (conversation.status === "connected") {
+      await conversation.sendUserMessage(text);
     }
   };
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 20, backgroundColor: "#f0f0f0" }}>
-        <Text>Status: {status}</Text>
-        {error && <Text style={{ color: "red" }}>Error: {error.message}</Text>}
+        <Text>Status: {conversation.status}</Text>
       </View>
 
       <ScrollView style={{ flex: 1, padding: 20 }}>
@@ -363,21 +351,153 @@ function ConversationScreen() {
             <Text>{msg.text}</Text>
           </View>
         ))}
-        {isListening && <ActivityIndicator />}
+        {conversation.status === "connected" && <ActivityIndicator />}
       </ScrollView>
 
       <View style={{ padding: 20 }}>
         <Button
           title={
-            status === "connected" ? "End Conversation" : "Start Conversation"
+            conversation.status === "connected" ? "End Conversation" : "Start Conversation"
           }
-          onPress={status === "connected" ? endConversation : startConversation}
-          disabled={status === "connecting" || status === "disconnecting"}
+          onPress={conversation.status === "connected" ? conversation.endSession : () => conversation.startSession({ agentId: "your-agent-id" })}
+          disabled={conversation.status === "connecting" || conversation.status === "disconnecting"}
         />
       </View>
     </View>
   );
 }
+```
+
+### Widgets
+
+The ElevenLabs Conversational AI Widgets provide an easy way to embed conversational AI into any website as a web component.
+
+#### Installation
+
+```bash
+# For the core widget library (if you want to bundle it yourself)
+npm install @elevenlabs/convai-widget-core
+
+# For the pre-bundled widget (recommended for easy embedding)
+npm install @elevenlabs/convai-widget-embed
+```
+
+#### Basic Usage
+
+##### Using the Pre-bundled Widget
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="module">
+      import "@elevenlabs/convai-widget-embed";
+    </script>
+  </head>
+  <body>
+    <elevenlabs-convai agent-id="your-agent-id"></elevenlabs-convai>
+  </body>
+</html>
+```
+
+##### Using the Core Widget Library
+
+```javascript
+import { registerWidget } from "@elevenlabs/convai-widget-core";
+
+// Register the widget custom element
+registerWidget();
+
+// Create and add the widget to your page
+const widget = document.createElement("elevenlabs-convai");
+widget.setAttribute("agent-id", "your-agent-id");
+document.body.appendChild(widget);
+```
+
+#### Widget Attributes
+
+The widget supports various attributes for customization:
+
+```html
+<elevenlabs-convai
+  agent-id="your-agent-id"
+  width="400"
+  height="600"
+  theme="light"
+></elevenlabs-convai>
+```
+
+### Agents CLI
+
+The ElevenLabs Agents CLI allows you to manage your agents as code, with features like version control, templates, and multi-environment deployments.
+
+#### Installation
+
+```bash
+# Global installation
+npm install -g @elevenlabs/convai-cli
+# or
+pnpm install -g @elevenlabs/convai-cli
+
+# One-time usage
+npx @elevenlabs/convai-cli init
+# or
+pnpm dlx @elevenlabs/convai-cli init
+```
+
+#### Features
+
+- **Agent Configuration**: Full ElevenLabs agent schema support
+- **Templates**: Pre-built templates for common use cases
+- **Multi-environment**: Deploy across dev, staging, production
+- **Smart Updates**: Hash-based change detection
+- **Watch Mode**: Automatic sync on file changes
+- **Import/Export**: Fetch existing agents from workspace
+- **Widget Generation**: HTML widget snippets
+- **Secure Storage**: OS keychain integration
+
+#### Quick Start
+
+```bash
+# 1. Initialize project
+convai init
+
+# 2. Login with API key
+convai login
+
+# 3. Create agent with template
+convai add "Support Bot" --template customer-service
+
+# 4. Edit configuration (agent_configs/prod/support_bot.json)
+
+# 5. Sync to ElevenLabs
+convai sync
+
+# 6. Watch for changes (optional)
+convai watch
+```
+
+#### Common Commands
+
+```bash
+# Authentication
+convai login                    # Store API key securely
+convai whoami                  # Check authentication status
+convai logout                  # Remove stored credentials
+
+# Agent Management
+convai add <name>              # Create new agent
+convai list                    # List all agents
+convai import <agent-id>       # Import existing agent
+convai sync                    # Deploy changes
+convai watch                   # Auto-sync on changes
+
+# Widget Generation
+convai widget <agent-id>       # Generate HTML widget code
+
+# Environment Management
+convai env                     # Show current environment
+convai env set <env>          # Switch environment
 ```
 
 ## Authentication
@@ -455,28 +575,6 @@ const clientTools = {
 };
 ```
 
-## Error Handling
-
-All SDKs provide comprehensive error handling:
-
-```typescript
-conversation.on("error", error => {
-  switch (error.code) {
-    case "MICROPHONE_ACCESS_DENIED":
-      console.error("Microphone access was denied");
-      break;
-    case "CONNECTION_FAILED":
-      console.error("Failed to connect to the agent");
-      break;
-    case "NETWORK_ERROR":
-      console.error("Network error occurred");
-      break;
-    default:
-      console.error("Unexpected error:", error);
-  }
-});
-```
-
 ## Advanced Configuration
 
 ### Audio Settings
@@ -495,14 +593,129 @@ const audioConfig = {
 ### Conversation Modes
 
 ```typescript
-// Voice mode (default)
-conversation.setMode("voice");
+// The SDK automatically handles mode changes between "speaking" and "listening"
+// You can monitor the current mode through callbacks:
+onModeChange: ({ mode }) => {
+  console.log("Current mode:", mode); // "speaking" or "listening"
+};
+```
 
-// Text-only mode
-conversation.setMode("text");
+## Callbacks
 
-// Listen-only mode
-conversation.setMode("listen");
+All SDKs support a comprehensive set of callbacks for handling conversation events:
+
+```typescript
+import { DisconnectionDetails } from "@elevenlabs/client"; // or @elevenlabs/react or @elevenlabs/react-native
+
+const conversationOptions = {
+  agentId: "your-agent-id",
+
+  // Connection lifecycle callbacks
+  onConnect: ({ conversationId }) => {
+    // Called when successfully connected to the agent
+    console.log("Connected with ID:", conversationId);
+  },
+
+  onDisconnect: (details: DisconnectionDetails) => {
+    // Called when disconnected from the agent
+    // details.reason can be: "error", "agent", or "user"
+    console.log("Disconnected:", details);
+  },
+
+  // Message handling callbacks
+  onMessage: ({ message, source }) => {
+    // Called for both user and AI messages
+    // source is either "user" or "ai"
+    console.log(`${source}: ${message}`);
+  },
+
+  onAudio: base64Audio => {
+    // Called when audio data is received (base64 encoded)
+    console.log("Received audio chunk");
+  },
+
+  // Error handling
+  onError: (message: string) => {
+    // Called when an error occurs
+    console.error("Error:", message);
+  },
+
+  // Status updates
+  onModeChange: ({ mode }) => {
+    // Mode is either "speaking" or "listening"
+    console.log("Mode changed to:", mode);
+  },
+
+  onStatusChange: ({ status }) => {
+    // Status: "disconnected", "connecting", "connected", or "disconnecting"
+    console.log("Status changed to:", status);
+  },
+
+  // Advanced callbacks
+  onInterruption: ({ event_id }) => {
+    // Called when the agent is interrupted
+    console.log("Interrupted at:", event_id);
+  },
+
+  onVadScore: ({ vadScore }) => {
+    // Voice Activity Detection score (0-1)
+    console.log("VAD score:", vadScore);
+  },
+
+  onCanSendFeedbackChange: ({ canSendFeedback }) => {
+    // Indicates if feedback can be sent for the current response
+    console.log("Can send feedback:", canSendFeedback);
+  },
+
+  // Client tools
+  onUnhandledClientToolCall: params => {
+    // Called when a client tool is called but not defined
+    console.log("Unhandled tool:", params.tool_name);
+  },
+
+  // Metadata
+  onConversationMetadata: metadata => {
+    // Conversation initialization metadata
+    console.log("Metadata:", metadata);
+  },
+
+  onAgentToolResponse: response => {
+    // Agent's tool usage information
+    console.log("Agent used tool:", response);
+  },
+
+  // Debug (for development)
+  onDebug: debugInfo => {
+    // Internal debug events
+    console.log("Debug:", debugInfo);
+  },
+};
+```
+
+### Error Handling
+
+Handle errors through the `onError` callback and disconnect details:
+
+```typescript
+// Error callback
+onError: (message: string) => {
+  console.error("Error occurred:", message);
+};
+
+// Disconnect callback with detailed reasons
+onDisconnect: (details: DisconnectionDetails) => {
+  switch (details.reason) {
+    case "error":
+      console.error("Disconnected due to error:", details.message);
+      break;
+    case "agent":
+      console.log("Agent ended the conversation");
+      break;
+    case "user":
+      console.log("User ended the conversation");
+      break;
+  }
+};
 ```
 
 ## Examples
