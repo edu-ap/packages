@@ -8,6 +8,7 @@ Build powerful conversational applications with [ElevenLabs Conversational AI pl
 [![npm version](https://img.shields.io/npm/v/@elevenlabs/react)](https://www.npmjs.com/package/@elevenlabs/react)
 [![npm version](https://img.shields.io/npm/v/@elevenlabs/react-native)](https://www.npmjs.com/package/@elevenlabs/react-native)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/elevenlabs/packages)
 
 ## Overview
 
@@ -508,18 +509,17 @@ conversation.setMode("listen");
 
 Explore our example applications to see the SDKs in action:
 
-- [React Example](https://github.com/elevenlabs/conversational-ai-react-demo)
-- [Next.js Example](https://github.com/elevenlabs/conversational-ai-nextjs-demo)
-- [React Native Example](https://github.com/elevenlabs/conversational-ai-react-native-demo)
-- [Vanilla JavaScript Example](https://github.com/elevenlabs/conversational-ai-js-demo)
+- [Next.JS Example](https://github.com/elevenlabs/elevenlabs-examples/tree/main/examples/conversational-ai/nextjs)
+- [React Native Expo Example](https://github.com/elevenlabs/packages/tree/main/examples/react-native-expo)
 
 ## API Reference
 
 For detailed API documentation, visit:
 
-- [TypeScript/JavaScript Client API](https://elevenlabs.io/docs/agents-platform/client-sdk)
-- [React SDK API](https://elevenlabs.io/docs/agents-platform/react-sdk)
-- [React Native SDK API](https://elevenlabs.io/docs/agents-platform/react-native-sdk)
+- [React SDK API](https://elevenlabs.io/docs/agents-platform/libraries/react)
+- [React Native SDK API](https://elevenlabs.io/docs/agents-platform/libraries/react-native)
+- [TypeScript/JavaScript Client API](https://elevenlabs.io/docs/agents-platform/libraries/java-script)
+- [Agents CLI](https://elevenlabs.io/docs/agents-platform/libraries/agents-cli)
 
 ## Troubleshooting
 
