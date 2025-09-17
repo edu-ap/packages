@@ -52,6 +52,26 @@ try {
 #### Options
 
 The Conversation can be initialized with certain options. Those are all optional.
+### RTC Endpoint Selection (Region-Aware)
+
+The ElevenLabs React SDK supports region-aware RTC/LiveKit endpoints. The RTC server URL is selected based on the residency/location option:
+
+| Residency/Location   | RTC Endpoint URL                                      |
+|---------------------|------------------------------------------------------|
+| eu-residency        | wss://livekit.rtc.eu.residency.elevenlabs.io         |
+| in-residency        | wss://livekit.rtc.in.residency.elevenlabs.io         |
+| global, us          | wss://livekit.rtc.elevenlabs.io                      |
+
+You can override the RTC endpoint by passing a custom `rtcUrl` option to the SDK:
+
+```js
+useConversation({
+  serverLocation: 'eu-residency',
+  rtcUrl: 'wss://custom.rtc.endpoint.example.com', // Optional override
+});
+```
+
+If `rtcUrl` is not provided, the SDK will use the region-aware mapping above.
 
 ```tsx
 const conversation = useConversation({
