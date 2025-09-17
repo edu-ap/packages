@@ -1,3 +1,16 @@
+// Region-aware RTC endpoint mapping
+export const RTC_ENDPOINTS: Record<Location, string> = {
+  'eu-residency': 'wss://livekit.rtc.eu.residency.elevenlabs.io',
+  'in-residency': 'wss://livekit.rtc.in.residency.elevenlabs.io',
+  'global': 'wss://livekit.rtc.elevenlabs.io',
+  'us': 'wss://livekit.rtc.elevenlabs.io',
+};
+
+export function getRtcUrl(options: { location?: Location; serverLocation?: Location; rtcUrl?: string } = {}): string {
+  if (options.rtcUrl) return options.rtcUrl;
+  const loc = options.location || options.serverLocation || 'global';
+  return RTC_ENDPOINTS[loc] || RTC_ENDPOINTS['global'];
+}
 import { useEffect, useRef, useState } from "react";
 import {
   Conversation,
@@ -75,6 +88,7 @@ export type HookOptions = Partial<
     InputConfig &
     FormatConfig & {
       serverLocation?: Location | string;
+      rtcUrl?: string;
     }
 >;
 export type ControlledState = {
@@ -105,7 +119,7 @@ export type HookCallbacks = Pick<
 export function useConversation<T extends HookOptions & ControlledState>(
   props: T = {} as T
 ) {
-  const { micMuted, volume, serverLocation, ...defaultOptions } = props;
+  const { micMuted, volume, serverLocation, rtcUrl, ...defaultOptions } = props;
   const conversationRef = useRef<Conversation | null>(null);
   const lockRef = useRef<Promise<Conversation> | null>(null);
   const [status, setStatus] = useState<Status>("disconnected");
@@ -131,7 +145,7 @@ export function useConversation<T extends HookOptions & ControlledState>(
   }, []);
 
   return {
-    startSession: (async (options?: HookOptions) => {
+  startSession: (async (options?: HookOptions) => {
       if (conversationRef.current?.isOpen()) {
         return conversationRef.current.getId();
       }
@@ -146,11 +160,17 @@ export function useConversation<T extends HookOptions & ControlledState>(
           options?.serverLocation || serverLocation
         );
         const origin = getOriginForLocation(resolvedServerLocation);
+        const rtcEndpoint = getRtcUrl({
+          location: resolvedServerLocation,
+          serverLocation: options?.serverLocation || serverLocation,
+          rtcUrl: options?.rtcUrl || rtcUrl,
+        });
 
         lockRef.current = Conversation.startSession({
           ...(defaultOptions ?? {}),
           ...(options ?? {}),
           origin,
+          rtcUrl: rtcEndpoint,
           overrides: {
             ...(defaultOptions?.overrides ?? {}),
             ...(options?.overrides ?? {}),
