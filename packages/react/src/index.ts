@@ -1,3 +1,4 @@
+console.log("Using region-aware RTC endpoint fix from edu-ap");
 // Region-aware RTC endpoint mapping
 export const RTC_ENDPOINTS: Record<Location, string> = {
   'eu-residency': 'wss://livekit.rtc.eu.residency.elevenlabs.io',
