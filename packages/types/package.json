@@ -24,7 +24,7 @@
     "@elevenlabs/typescript-config": "workspace:*",
     "@types/node": "^22.10.5",
     "eslint": "^9.20.0",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "prettier": "^3.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.9.2"
